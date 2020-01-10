@@ -7,7 +7,6 @@ export interface IGlobalConfig {
   skipGeneratedGatewayClasses: boolean;
   skipGeneratedPersistentClasses: boolean;
   skipGeneratedFunctionGroups: boolean;
-  applyUnspecifiedRules: boolean;
 }
 
 export interface IDependency {
@@ -40,7 +39,7 @@ export class Config {
   public static getDefault(ver?: Version): Config {
     const rules: any = {};
 
-    const sorted = Artifacts.getRules().sort((a, b) => { return a.getKey().localeCompare(b.getKey()); });
+    const sorted = Artifacts.getRules().sort((a, b) => {return a.getKey().localeCompare(b.getKey()); });
     for (const rule of sorted) {
       rules[rule.getKey()] = rule.getConfig();
     }
@@ -56,7 +55,6 @@ export class Config {
         skipGeneratedGatewayClasses: true,
         skipGeneratedPersistentClasses: true,
         skipGeneratedFunctionGroups: true,
-        applyUnspecifiedRules: false,
       },
       dependencies: [{
         url: "https://github.com/abaplint/deps",
@@ -82,16 +80,14 @@ export class Config {
       const ruleExists = ruleConfig !== undefined;
 
       if (ruleExists) {
-        if (ruleConfig === true) { // "rule": true
+        if (ruleConfig === false) { // "rule": false
+          continue;
+        } else if (ruleConfig === true) { // "rule": true
           rules.push(rule);
-        } else if (typeof ruleConfig === "object") {
-          if (ruleConfig.enabled === true || ruleConfig.enabled === undefined) {
-            rule.setConfig(ruleConfig);
-            rules.push(rule);
-          }
+        } else if (typeof ruleConfig === "object") { // "rule": { ...config }
+          rule.setConfig(ruleConfig);
+          rules.push(rule);
         }
-      } else if (this.config.global.applyUnspecifiedRules) {
-        rules.push(rule);
       }
     }
 
